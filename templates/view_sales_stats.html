@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistiques de Vente</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Styles généraux */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            background-image: url('../static/img/login-bg.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 20px;
+            overflow: auto;
+        }
+
+        .stats-container {
+            position: relative;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 800px; /* Largeur maximale */
+            z-index: 1;
+         }
+        .chart-container { margin-top: 30px; }
+        .recommendation {
+    margin-top: 30px;
+    background-color: #f9f9f9; /* Couleur de fond claire */
+    border: 1px solid #ccc; /* Bordure grise */
+    padding: 20px; /* Espacement interne */
+    border-radius: 8px; /* Coins arrondis */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Ombre légère */
+    text-align: center; /* Centrer le texte */
+}
+
+.recommendation h4 {
+    color: #333; /* Couleur du titre */
+    margin-bottom: 15px; /* Marge en bas du titre */
+}
+
+.recommendation p {
+    font-size: 16px; /* Taille de la police */
+    color: #666; /* Couleur du texte */
+}
+
+.recommendation ul {
+    list-style-type: none; /* Supprimer les puces */
+    padding: 0; /* Supprimer le padding */
+}
+
+.recommendation li {
+    background-color: #e2f0d9; /* Couleur de fond pour les éléments de la liste */
+    margin: 5px 0; /* Marge entre les éléments */
+    padding: 10px; /* Espacement interne */
+    border-radius: 4px; /* Coins arrondis pour les éléments de la liste */
+}
+.galactic-waves {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 12px;
+            pointer-events: none;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 20%, transparent 20%) 0 0,
+                        radial-gradient(circle, rgba(255, 255, 255, 0.1) 20%, transparent 20%) 50% 50%;
+            background-size: 100px 100px;
+            animation: wave 5s infinite linear;
+            z-index: 0;
+        }
+
+        @keyframes wave {
+            0% { background-position: 0 0, 50% 50%; }
+            100% { background-position: 100% 100%, 150% 150%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="galactic-waves"></div>
+    <div class="stats-container">
+        <h3>Statistiques de Vente</h3>
+        <div class="row">
+            <div class="col-md-4">
+                <h4>Total des Ventes</h4>
+                <p id="totalSales">Chargement...</p>
+            </div>
+            <div class="col-md-4">
+                <h4>Chiffre d'Affaires Total</h4>
+                <p id="totalRevenue">Chargement...</p>
+            </div>
+            <div class="col-md-4">
+                <h4>Ventes par Vendeur</h4>
+                <table class="table table-bordered" id="salesBySeller">
+                    <thead>
+                        <tr>
+                            <th>Vendeur</th>
+                            <th>Total des Commandes par Mois</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Chargement...</td><td>...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="salesChart"></canvas>
+        </div>
+
+        <div class="recommendation">
+            <h4>Recommandation</h4>
+            <p>Mettez en promotion les produits suivants :</p>
+            <ul id="recommendations">
+                <li>Chargement...</li>
+            </ul>
+        </div>
+
+        <a href="{% url 'admin-dashboard' %}" class="btn btn-secondary mt-3">Return</a>
+    </div>
+
+    <script>
+        // Simuler récupération de données
+        const fetchData = async () => {
+            // Remplacez cette partie par un appel à votre API
+            const data = {
+                totalSales: 1200,
+                totalRevenue: '15,000 EUR',
+                salesBySeller: [
+                    { seller: 'Vendeur A', total: 1000 },
+                    { seller: 'Vendeur B', total: 900 },
+                    { seller: 'Vendeur C', total: 500 }
+                ],
+                recommendations: [
+                    'Produit X (15 ventes)',
+                    'Produit Y (10 ventes)',
+                    'Produit Z (5 ventes)'
+                ]
+            };
+
+            // Mettre à jour le DOM avec les données
+            document.getElementById('totalSales').innerText = data.totalSales + ' articles ont été commandés.';
+            document.getElementById('totalRevenue').innerText = data.totalRevenue;
+
+            const salesBySellerTable = document.getElementById('salesBySeller').getElementsByTagName('tbody')[0];
+            salesBySellerTable.innerHTML = ''; // Vider le tableau existant
+            data.salesBySeller.forEach(sale => {
+                const row = salesBySellerTable.insertRow();
+                row.insertCell(0).innerText = sale.seller;
+                row.insertCell(1).innerText = sale.total;
+            });
+
+            const recommendationsList = document.getElementById('recommendations');
+            recommendationsList.innerHTML = ''; // Vider la liste existante
+            data.recommendations.forEach(recommendation => {
+                const li = document.createElement('li');
+                li.innerText = recommendation;
+                recommendationsList.appendChild(li);
+            });
+
+            // Créer le graphique
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            const salesChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.salesBySeller.map(sale => sale.seller),
+                    datasets: [{
+                        label: 'Total des Commandes',
+                        data: data.salesBySeller.map(sale => sale.total),
+                        backgroundColor: 'rgba(203, 22, 248, 0.2)',
+                        borderColor: 'rgb(157, 92, 245)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        };
+
+        // Appeler la fonction pour récupérer les données
+        fetchData();
+    </script>
+</body>
+</html>

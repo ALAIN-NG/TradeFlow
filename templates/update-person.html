@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+
+    <br><br>
+    <h1 class="text-capitalize text-center mx-10 bg-dark text-white"> Update {{person.name}}</h1>
+
+    <form method="post">
+        {%  csrf_token %}
+        <div class="form-row">
+            <div class=".form-group col-md-6">
+                <label for="name"> Name </label>
+                <input name="name" value={{person.name}} required type="text" class="form-control" id="name" placeholder="Person first and last name">
+            </div>
+
+            <div class=".form-group col-md-6">
+                <label for="email"> Email </label>
+                <input name="email" value={{person.email}} required type="email" class="form-control" id="email" placeholder="Person email">
+            </div>
+
+        </div>
+        <br>
+        <div class="form-row">
+            <div class=".form-group col-md-6">
+                <label for="phone"> Phone </label>
+                <input name="phone" value={{person.phone}} required type="number" class="form-control" id="phone" placeholder="Person phone number">
+            </div>
+
+            <div class=".form-group col-md-6">
+                <label for="password"> Password </label>
+                <input name="password" type="password" value={{person.password}} required class="form-control" id="password" placeholder="Enter your password">
+            </div>
+        </div>
+        <br>
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label for="sex"> Sex </label>
+                <select name="sex" class="form-control" id="sex">
+                    <option value="M" {% if person.sex == 'M' %}selected{% endif %} > Male </option>
+                    <option value="F" {% if person.sex == 'F' %}selected{% endif %}>Feminine</option>
+                </select>
+            </div>
+
+            <div class="form-group col-md-6">
+                <label for="age"> Age </label>
+                <input name="age" required type="number" value={{person.age}} class="form-control" id="age" placeholder="Person age">
+            </div>
+            
+        </div>
+
+        <div class="form-row">
+            <div class="form-group col-md-12">
+                <label for="address"> Addess </label>
+                <input name="address" type="text" value={{person.address}} required class="form-control" id="address" placeholder="Person address">
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class=".form-group col-md-6">
+                <label for="city"> City </label>
+                <input name="city" required type="city" value={{person.city}} class="form-control" id="city" placeholder="Person city">
+            </div>
+
+            <div class=".form-group col-md-6">
+                <label for="zip"> Zip code </label>
+                <input name="zip" required type="zip" value={{person.bp}} class="form-control" id="zip" placeholder="Person zip code">
+            </div>
+
+        </div>
+        <br>
+        <button type="submit" class="btn btn-primary"> Save </button>
+        {% if person.role == 'C' %}
+            <a href="{% url 'manage-clients' %}" title="manage clients" class="btn btn-outline-danger text-white bg-danger w-50 col-md-1 float-right">Return</a>
+        {% elif person.role == 'S' %}
+            <a href="{% url 'manage-sellers' %}" title="manage sellers" class="btn btn-outline-danger text-white bg-danger w-50 col-md-1 float-right">Return</a>
+        {% elif person.role == 'M' %}
+            <a href="{% url 'manage-managers' %}" title="manage managers" class="btn btn-outline-danger text-white bg-danger w-50 col-md-1 float-right">Return</a>
+        {% endif %}
+
+    </form>
+   <br>
+
+{% endblock content %}

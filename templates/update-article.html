@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+
+    <br><br>
+    <h1 class="text-capitalize text-center mx-10 bg-dark text-white"> Update Atricle </h1>
+
+    <form method="post">
+        {%  csrf_token %}
+        <br><br>
+        <div class="form-row">
+            <div class=".form-group col-md-6">
+                <label for="name"> Name </label>
+                <input name="name" value="{{article.name}}" required type="text" class="form-control" id="name" placeholder="Artilce name">
+            </div>
+            
+            <div class="form-group col-md-6">
+                <label for="unit_price"> Unit Price </label>
+                <input name="unit_price" value="{{article.unit_price}}" type="number" required class="form-control" id="unit_price" placeholder="Unit price of Article">
+            </div>
+        </div>
+        <br><br>
+        <div class="form-row">
+            <div class=".form-group col-md-6">
+                <label for="date_per"> Expiration Date </label>
+                <input name="date_per" value="article.date_per" type="date" class="form-control" id="date_per">
+            </div>
+
+            <div class=".form-group col-md-6">
+                <label for="quantity"> Quantity </label>
+                <input name="quantity" value="{{article.quantity}}" type="number" required class="form-control" id="quantity" placeholder="Article quantity">
+            </div>
+        </div>
+        <br><br>
+        <div class="form-row">
+            <div class=".form-group col-md-6">
+                <label for="description"> Description </label>
+                <input type="text" value="{{article.description}}" name="description" placeholder="Article description" class="form-control" id="description">
+            </div>
+
+            <div class="form-group col-md-6">
+                <label for="image_url"> Image </label>
+                <input type = "file" value="{{article.image_url}}" name = "image_url" id="image_url" class="form-control" placeholder=" Choose an image...">
+            </div>
+            
+        </div>
+
+        <br><br>
+        <button type="submit" class="btn btn-primary"> Save </button>
+        <a href="{% url 'article-view' %}" title="article view" class="btn btn-outline-danger text-white bg-danger w-50 col-md-1 float-right">Quit</a>
+    </form>
+    <br>
+{% endblock content %}

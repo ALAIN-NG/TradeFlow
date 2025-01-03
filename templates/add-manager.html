@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+
+    <br><br>
+    <h1 class="text-capitalize text-center mx-10 bg-dark text-white"> Register a new Manager</h1>
+
+    <form method="post">
+        {%  csrf_token %}
+        <div class="form-row">
+            <div class=".form-group col-md-6">
+                <label for="name"> Name </label>
+                <input name="name" required type="text" class="form-control" id="name" placeholder="Manager first and last name">
+            </div>
+
+            <div class=".form-group col-md-6">
+                <label for="email"> Email </label>
+                <input name="email" required type="email" class="form-control" id="email" placeholder="Manager email">
+            </div>
+
+        </div>
+        <br>
+        <div class="form-row">
+            <div class=".form-group col-md-6">
+                <label for="phone"> Phone </label>
+                <input name="phone" required type="number" class="form-control" id="phone" placeholder="Manager phone number">
+            </div>
+
+            <div class=".form-group col-md-6">
+                <label for="password"> Password </label>
+                <input name="password" type="password" required class="form-control" id="password" placeholder="Enter your password">
+            </div>
+        </div>
+        <br>
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label for="sex"> Sex </label>
+                <select name="sex" class="form-control" id="sex">
+                    <option value="M"> Male </option>
+                    <option value="F">Feminine</option>
+                </select>
+            </div>
+
+            <div class="form-group col-md-6">
+                <label for="age"> Age </label>
+                <input name="age" required type="number" class="form-control" id="age" placeholder="Manager age">
+            </div>
+            
+        </div>
+
+        <div class="form-row">
+            <div class="form-group col-md-12">
+                <label for="address"> Addess </label>
+                <input name="address" type="text" required class="form-control" id="address" placeholder="Manager address">
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class=".form-group col-md-6">
+                <label for="city"> City </label>
+                <input name="city" required type="city" class="form-control" id="city" placeholder="Manager city">
+            </div>
+
+            <div class=".form-group col-md-6">
+                <label for="zip"> Zip code </label>
+                <input name="zip" required type="zip" class="form-control" id="zip" placeholder="Manager zip code">
+            </div>
+
+        </div>
+        <br>
+        <button type="submit" class="btn btn-primary"> Save </button>
+        <a href="{% url 'manage-managers' %}" title="manage managers" class="btn btn-outline-danger text-white bg-danger w-50 col-md-1 float-right">Quit</a>
+
+    </form>
+
+    <br>
+{% endblock content %}

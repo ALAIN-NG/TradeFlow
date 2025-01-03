@@ -1,0 +1,536 @@
+{% extends "base.html" %}
+{% block content %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.2.1/chart.umd.min.js"></script>
+
+<h1 style="text-align: center;">Tableau de bord des ventes</h1>
+
+<style>
+    .dashboard {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); /* Grille responsive avec des colonnes plus larges */
+        gap: 40px; /* Espace entre les éléments */
+        padding: 20px;
+    }
+    .chart-container {
+        background: #ffffff; /* Couleur de fond pour une meilleure lisibilité */
+        border-radius: 10px; /* Coins arrondis */
+        padding: 20px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15); /* Ombre pour un effet de profondeur */
+        transition: transform 0.2s; /* Animation d'agrandissement au survol */
+    }
+    .chart-container:hover {
+        transform: scale(1.02); /* Effet d'agrandissement au survol */
+    }
+    h2 {
+        text-align: center; /* Centrer les titres des graphiques */
+        margin-bottom: 15px;
+        color: #333; /* Couleur du texte sombre pour un bon contraste */
+        font-size: 1.6rem; /* Taille de police légèrement plus grande */
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1); /* Ombre légère pour améliorer la lisibilité */
+    }
+    canvas {
+        width: 100% !important; /* S'assure que le canevas s'adapte à son conteneur */
+        height: auto !important;
+        max-height: 400px; /* Hauteur maximale pour les graphiques */
+    }
+    #backButton {
+        display: inline-block; /* Assure que le bouton est visible */
+        margin: 10px auto; /* Centre le bouton */
+        padding: 10px 20px; /* Espacement interne */
+        background-color: #5ef6fc; /* Couleur de fond */
+        color: #333; /* Couleur du texte */
+        border: none; /* Pas de bordure */
+        border-radius: 5px; /* Coins arrondis */
+        cursor: pointer; /* Curseur de pointeur */
+    }
+    #backButton:hover {
+        background-color: #43fa6b; /* Couleur au survol */
+    }
+     
+    .quit-button {
+            position: relative;
+            background-color: rgb(32, 15, 194);
+            color: aqua;
+            bottom: 5px;
+            left: 1010px;
+            margin-top: 10px;
+            /* background-color: rgba(62, 243, 93, 0.8); */
+        }
+</style>
+
+<div class="dashboard">
+    <div class="chart-container">
+        <h2>Ventes par période</h2>
+        <div style="text-align: center; margin: 20px;">
+            <button id="backButton" style="display: none;">Retour</button>
+        </div>
+        <canvas id="salesChart" width="600" height="400"></canvas> <!-- Taille augmentée -->
+    </div>
+
+    <div class="chart-container">
+        <h2>Articles les plus vendus en {{ top_articles.year }}</h2>
+        
+        <!-- Sélecteur d'années -->
+        <div class="mb-4">
+            <label for="yearSelector">Sélectionner une année :</label>
+            <select id="yearSelector" class="form-control" value = "{{ top_articles.year }}" onchange="changeYear()">
+                {% for y in top_articles.years %}
+                    <option value="{{ y.invoice__invoice_date_time__year }}" {% if y.invoice__invoice_date_time__year == top_articles.years %} selected {% endif %}>{{ y.invoice__invoice_date_time__year }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Canvas pour afficher le graphique -->
+        <canvas id="top_selling_articles" width="600" height="400"></canvas>
+    </div>
+
+    <div class="chart-container">
+        <h2>Performances des Vendeurs</h2>
+        <canvas id="sellerPerformanceChart" width="600" height="400"></canvas> <!-- Taille augmentée -->
+    </div>
+
+    <div class="chart-container">
+        <h2>Répartition des factures pour l'année {{paid_unpaid.year}}<span id="selectedYear"></span></h2>
+        
+        <!-- Liste déroulante pour sélectionner une année -->
+        <label for="yearSelector1">Sélectionner une année :</label>
+        <select id="yearSelector1" value = {{first_year}} class="form-control">
+            {% for data in paid_unpaid %}
+                <option value="{{ data.year }}">{{ data.year }}</option>
+            {% endfor %}
+        </select>
+
+        <!-- Canvas pour afficher le graphique -->
+        <canvas id="invoiceChart" width="600" height="400"></canvas>
+    </div>
+
+
+    <div class="chart-container">
+        <h2>Tendances des ventes</h2>
+        <canvas id="salesTrendChart" width="1600" height="1400"></canvas> 
+    </div>
+
+    <div class="chart-container">
+        <h2>Produit a mettre en promotion</h2>
+        <canvas id="promotedArticleChart" with="1600" height="1400"></canvas>
+    </div>
+    
+</div>
+<a href="{% url 'admin-dashboard' %}" class="btn btn-secondary quit-button">Quitter</a>
+
+<script>
+    // Données initiales passées par Django
+    const annualData = {{ annual_data|safe }};
+    const monthlyData = {{ monthly_data|safe }};
+    const dailyData = {{ daily_data|safe }};
+    const topArticles = {{ top_articles|safe }};
+    const sellerPerformance = {{ seller_performance|safe }};
+    const paidUnpaid = {{ paid_unpaid|safe }};
+    const salesTrends = {{ sales_trends|safe }};
+    const promotedArticles ={{promote_expiring_articles|safe}};
+
+    // Fonction pour mettre à jour le graphique des ventes
+    function updateSalesChart(chart, data, periodLabel, enableBack = false) {
+        chart.data.labels = data.map(item => item.label);
+        chart.data.datasets[0].data = data.map(item => item.value);
+        chart.data.datasets[0].label = `Ventes (${periodLabel})`;
+        chart.config.options.currentPeriod = periodLabel; // Met à jour la période actuelle
+        chart.update();
+
+        // Gérer l'affichage du bouton retour
+        const backButton = document.getElementById('backButton');
+        backButton.style.display = enableBack ? 'inline-block' : 'none';
+    }
+
+    // Fonction pour obtenir les données pour une période donnée
+    function getDataForPeriod(period, label) {
+        if (period === 'monthly') {
+            return monthlyData.filter(item => item.label.startsWith(label));
+        } else if (period === 'daily') {
+            return dailyData.filter(item => item.label.startsWith(label));
+        }
+        return annualData; // Par défaut, retourne les données annuelles
+    }
+
+    // Fonction pour gérer le clic sur une barre
+    function handleChartClick(chart, elements) {
+        if (elements.length === 0) return;
+
+        const firstPoint = elements[0];
+        const selectedLabel = chart.data.labels[firstPoint.index];
+        const currentPeriod = chart.config.options.currentPeriod;
+
+        let nextPeriod = '';
+        if (currentPeriod === 'Année') nextPeriod = 'monthly';
+        else if (currentPeriod === 'Mois') nextPeriod = 'daily';
+        else return; // Pas de descente au-delà des jours
+
+        const newData = getDataForPeriod(nextPeriod, selectedLabel);
+
+        const periodLabel = nextPeriod === 'monthly' ? 'Mois' : 'Jour';
+        updateSalesChart(chart, newData, periodLabel, true);
+    }
+
+    // Gestion du clic sur le bouton "Retour"
+    document.getElementById('backButton').addEventListener('click', async () => {
+        const currentPeriod = salesChart.config.options.currentPeriod;
+
+        let previousPeriod = '';
+        let selectedLabel = null; // On remonte d'une étape
+        if (currentPeriod === 'Jour') previousPeriod = 'monthly';
+        else if (currentPeriod === 'Mois') previousPeriod = 'annually';
+
+        if (previousPeriod) {
+            const newData = getDataForPeriod(previousPeriod, selectedLabel);
+
+            const periodLabel = previousPeriod === 'monthly' ? 'Mois' : 'Année';
+            updateSalesChart(salesChart, newData, periodLabel, previousPeriod !== 'annually');
+        }
+    });
+
+    // Initialisation du graphique des ventes par période
+    const ctx = document.getElementById('salesChart').getContext('2d');
+    const initialLabels = annualData.map(item => item.label);
+    const initialValues = annualData.map(item => item.value);
+
+    const salesChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: initialLabels,
+            datasets: [{
+                label: 'Ventes (Année)',
+                data: initialValues,
+                backgroundColor: 'rgba(75, 172, 12, 0.2)',
+                borderColor: 'rgba(75, 192, 172, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            currentPeriod: 'Année', // Période initiale
+            onClick: function (evt, elements) {
+                handleChartClick(this, elements);
+            }
+        }
+    });
+
+
+    const labels = topArticles.labels;
+        const quantities = topArticles.quantities;
+        const currentYear = topArticles.years;
+        const ctx1 = document.getElementById('top_selling_articles').getContext('2d');
+        const myChart = new Chart(ctx1, {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Quantité vendue',
+                    data: quantities,
+                    backgroundColor: [
+                    'rgba(255, 99, 132, 0.8)', // Couleur 1
+                    'rgba(54, 162, 235, 0.8)', // Couleur 2
+                    'rgba(255, 206, 86, 0.8)', // Couleur 3
+                    'rgba(75, 192, 192, 0.8)', // Couleur 4
+                    'rgba(153, 102, 255, 0.8)' // Couleur 5
+                ],
+                    borderColor: 'rgba(58, 162, 255, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Fonction pour changer l'année dans le graphique
+        function changeYear() {
+            const selectedYear = document.getElementById('yearSelector').value;
+            window.location.href = `/dashboard/?period=annually&label=${selectedYear}`; // Redirection pour charger les données de l'année sélectionnée
+        }
+
+    // // Chart.js: Top Articles
+    // const articleLabels = topArticles.map(item => item.article_name__name);
+    // const articleValues = topArticles.map(item => item.total_quantity);
+
+    // new Chart(document.getElementById('topArticlesChart'), {
+    //     type: 'pie',
+    //     data: {
+    //         labels: articleLabels,
+    //         datasets: [{
+    //             data: articleValues,
+    //             backgroundColor: [
+    //                 'rgba(255, 99, 132, 0.8)', // Couleur 1
+    //                 'rgba(54, 162, 235, 0.8)', // Couleur 2
+    //                 'rgba(255, 206, 86, 0.8)', // Couleur 3
+    //                 'rgba(75, 192, 192, 0.8)', // Couleur 4
+    //                 'rgba(153, 102, 255, 0.8)' // Couleur 5
+    //             ]
+    //         }]
+    //     },
+    //     options: {
+    //         plugins: {
+    //             legend: {
+    //                 labels: {
+    //                     color: '#333', // Couleur de la légende
+    //                     font: {
+    //                         size: 14 // Taille de la légende
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+    // });
+
+    // Chart.js: Performances des vendeurs
+    const sellerLabels = sellerPerformance.map(item => item.save_by__name);
+    const sellerValues = sellerPerformance.map(item => item.total_sales);
+
+    new Chart(document.getElementById('sellerPerformanceChart'), {
+        type: 'line',
+        data: {
+            labels: sellerLabels,
+            datasets: [{
+                label: 'Total des ventes (€)',
+                data: sellerValues,
+                backgroundColor: 'rgba(255, 159, 64, 0.8)', // Couleur vive
+                borderColor: 'rgba(255, 159, 64, 1)',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: '#333', // Couleur des étiquettes Y
+                        font: {
+                            size: 14 // Taille des étiquettes
+                        }
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: '#333', // Couleur des étiquettes X
+                        font: {
+                            size: 14 // Taille des étiquettes
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#333', // Couleur de la légende
+                        font: {
+                            size: 14 // Taille de la légende
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Chart.js: Factures payées et impayées
+    // new Chart(document.getElementById('invoiceChart'), {
+    //     type: 'doughnut',
+    //     data: {
+    //         labels: ['Payées', 'Impayées'],
+    //         datasets: [{
+    //             data: [paidUnpaid.paid, paidUnpaid.unpaid],
+    //             backgroundColor: [
+    //                 'rgba(62, 243, 93, 0.8)', // Couleur pour payées
+    //                 'rgba(253, 50, 43, 0.8)' // Couleur pour impayées
+    //             ]
+    //         }]
+    //     },
+    //     options: {
+    //         plugins: {
+    //             legend: {
+    //                 labels: {
+    //                     color: '#333', // Couleur de la légende
+    //                     font: {
+    //                         size: 14 // Taille de la légende
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+    // });
+    
+    // Chart.js: Factures payées et impayées
+    // Données passées depuis le backend
+    const paidUnpaidData = {{ paid_unpaid|safe }};
+    // Initialisation du graphique
+    const ctx5 = document.getElementById('invoiceChart').getContext('2d');
+    const selectedYearSpan = document.getElementById('selectedYear');
+    let invoiceChart = null;
+
+    // Fonction pour créer le graphique
+    function createChart(paid, unpaid) {
+    if (invoiceChart) {
+        invoiceChart.destroy(); // Détruire le graphique précédent
+    }
+
+    invoiceChart = new Chart(ctx5, {
+        type: 'doughnut',
+        data: {
+            labels: ['Payées', 'Impayées'],
+            datasets: [{
+                data: [paid, unpaid],
+                backgroundColor: [
+                    'rgba(62, 243, 93, 0.8)', // Couleur pour payées
+                    'rgba(253, 50, 43, 0.8)' // Couleur pour impayées
+                ]
+            }]
+        },
+        options: {
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#333',
+                        font: {
+                            size: 14
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+
+    // Fonction pour mettre à jour le graphique
+    function updateChart(year) {
+    selectedYearSpan.textContent = year;
+
+    const yearData = paidUnpaidData.find(item => item.year == year);
+
+    if (!yearData) {
+        createChart(0, 0);
+        return;
+    }
+
+    const paid = yearData.paid || 0;
+    const unpaid = yearData.unpaid || 0;
+
+    createChart(paid, unpaid);
+}
+
+
+
+    // Charger les données initiales
+    const initialYear = document.getElementById('yearSelector1').value; // Remplacez '2024' par l'année de votre choix
+    updateChart(initialYear);
+
+    // Mettre à jour le graphique lorsque l'année change
+    document.getElementById('yearSelector1').addEventListener('change', function() {
+        const selectedYear = this.value;
+        updateChart(selectedYear);
+    });
+
+    // Chart.js: Tendances des ventes
+
+// Assuming salesTrends is an array of objects returned from your sales_trends function
+const trendLabels = salesTrends.map(item => item.label); // Use 'label' from your formatted data
+const trendValues = salesTrends.map(item => item.value); // Use 'value' for sales totals
+
+console.log(trendLabels);
+
+new Chart(document.getElementById('salesTrendChart'), {
+    type: 'line',
+    data: {
+        labels: trendLabels,
+        datasets: [{
+            label: 'Total des ventes (€)',
+            data: trendValues,
+            borderColor: 'rgba(75, 192, 192, 1)', // Couleur de la ligne
+            backgroundColor: 'rgba(75, 192, 192, 0.2)' // Couleur de fond
+        }]
+    },
+    options: {
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    color: '#333', // Couleur des étiquettes Y
+                    font: {
+                        size: 14 // Taille des étiquettes
+                    }
+                }
+            },
+            x: {
+                ticks: {
+                    color: '#333', // Couleur des étiquettes X
+                    font: {
+                        size: 14 // Taille des étiquettes
+                    }
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                labels: {
+                    color: '#333', // Couleur de la légende
+                    font: {
+                        size: 14 // Taille de la légende
+                    }
+                }
+            }
+        }
+    }
+});
+    // Chart.js: Articles mis en promotion
+const promotedArticleLabels = promotedArticles.map(item => item.name);
+    const promotedArticleValues = promotedArticles.map(item => item.quantity);
+
+    new Chart(document.getElementById('promotedArticleChart'), {
+        type: 'bar',
+        data: {
+            labels: promotedArticleLabels,
+            datasets: [{
+                label: 'Quantité d\'Articles en Promotion',
+                data: promotedArticleValues,
+                backgroundColor: 'rgba(133, 199, 245, 0.5)', // Couleur pour les articles
+                borderColor: 'rgba(153, 102, 255, 1)',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: '#333', // Couleur des étiquettes Y
+                        font: {
+                            size: 12 // Taille des étiquettes
+                        }
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: '#333', // Couleur des étiquettes X
+                        font: {
+                            size: 12 // Taille des étiquettes
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#333', // Couleur de la légende
+                        font: {
+                            size: 12 // Taille de la légende
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

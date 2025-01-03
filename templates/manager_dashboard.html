@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Articles</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Styles généraux */
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-image: url('../static/img/login-bg.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        /* Conteneur de la page de gestion des articles */
+        .article-management {
+            position: relative;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 800px;
+            z-index: 1;
+            margin-bottom: 20px;
+        }
+
+        .article-management:hover {
+            transform: scale(1.02);
+        }
+
+        .article-management h3 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table td,
+        .table th {
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        .btn {
+            margin-right: 5px;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+        }
+
+        /* Effets d'ondes galactiques */
+        .galactic-waves {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 12px;
+            pointer-events: none;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 20%, transparent 20%) 0 0,
+                        radial-gradient(circle, rgba(255, 255, 255, 0.1) 20%, transparent 20%) 50% 50%;
+            background-size: 100px 100px;
+            animation: wave 5s infinite linear;
+            z-index: 0;
+        }
+
+        @keyframes wave {
+            0% { background-position: 0 0, 50% 50%; }
+            100% { background-position: 100% 100%, 150% 150%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="galactic-waves"></div>
+    <div class="article-management">
+        
+        <h3>Gestion des Articles</h3>
+
+        <!-- Bouton pour ajouter un nouvel article -->
+        <a href="{% url 'add_article' %}" class="btn btn-success mb-3">Ajouter un Article</a>
+
+        <table class="table table-bordered table-striped">
+            <thead class="thead-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Nom</th>
+                    <th>Date de Péremption</th>
+                    <th>Quantité</th>
+                    <th>Prix Unitaire</th>
+                    <th>URL de l'Image</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for article in articles %}
+                <tr>
+                    <td>{{ article.id }}</td>
+                    <td>{{ article.name }}</td>
+                    <td>{{ article.date_per }}</td>
+                    <td>{{ article.quantity }}</td>
+                    <td>{{ article.unit_price }}</td>
+                    <td>{{ article.image_url }}</td>
+                    <td>
+                        <!-- Bouton pour modifier l'article -->
+                        <a href="{% url 'edit-article' article.id %}" class="btn btn-warning">Modifier</a>
+
+                        <!-- Formulaire pour supprimer un article -->
+                        <form action="{% url 'delete-article' %}?article_id={{ article.id }}" method="POST" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">Supprimer</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <a href="{% url 'login' %}" class="btn btn-secondary mt-3">Quitter</a>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

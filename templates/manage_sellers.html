@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+
+{% block content %}
+<br><br>
+
+<div class="row">
+    <a href='#' class="col-md-4">
+      <span class="badge text-bg-secondary"></span>
+   </a>
+
+   <a href="{% url 'add-seller' %}" class="btn col-md-4 btn-primary">
+     {% trans 'Register a new seller ' %} <span class="badge text-bg-secondary"></span>
+   </a>
+
+   <a href='#' class="col-md-4">
+      <span class="badge text-bg-secondary"></span>
+   </a>
+
+</div>
+
+<br> <br>
+
+<div class="form-group ">
+   <input id="search" class="form-control" type="text" placeholder="Search....">
+</div>
+
+<div>
+   <table class="table table-striped-columns">
+      <thead>
+         <tr>
+            <th scope="col">#</th>
+            <th scope="col">{% trans 'NAME' %}</th>
+            <th scope="col">EMAIL</th>
+            <th scope="col">PHONE</th>
+            <th scope="col">SEX</th>
+            <th scope="col">AGE</th>
+            <th scope="col">ADDRESS</th>
+            <th scope="col">CITY</th>
+            <th scope="col">ACTION</th>
+
+         </tr>
+      </thead>
+      <tbody id="myTable">
+         {% if persons %}
+         {% for person in persons %}
+         <tr>
+            <th scope="row">{{ forloop.counter }}</th>
+            <td>{{person.name}}</td>
+            <td>{{person.email}}</td>
+            <td>{{ person.phone }}</td>
+            <td>
+               {% if person.sex == "M" %}
+                  Male 
+               {% else %}
+                  Female
+               {% endif %}
+            </td>
+            <td>{{person.age}}</td>
+            <td>{{person.address}}</td>
+            <td>{{person.city}}</td>
+            <td>
+               <button id="btn-person-sup" type="button" data-toggle="modal" data-target="#supprimer"
+                  class="badge text-white bg-danger" title="Supprimer" data-id="{{ person.pk }}"
+                  data-customer="{{person.name}}"> {% trans 'Delete' %}
+               </button>
+
+               <a href="{% url 'update-person' pk=person.pk %}" title="Update" class="badge text-white bg-success">{% trans 'Update' %}</a>
+            </td>
+         </tr>
+
+         {% endfor %}
+
+         {% if persons.has_other_pages %}
+            <div class="btn-group" role="group" aria-label="Item pagination">
+               <!-- Lien vers la page précédente -->
+               {% if persons.has_previous %}
+               <a href="?page={{ persons.previous_page_number }}" class="btn btn-outline-primary">&laquo;</a>
+               {% endif %}
+
+               <!-- Pages dynamiques -->
+               {% for page_number in persons.paginator.page_range %}
+                  {% if page_number == 1 or page_number == persons.paginator.num_pages %}
+                        <a href="?page={{ page_number }}" class="btn btn-outline-primary {% if persons.number == page_number %}active{% endif %}">
+                           {{ page_number }}
+                        </a>
+                  {% elif page_number >= persons.number|add:'-2' and page_number <= persons.number|add:'2' %}
+                        <a href="?page={{ page_number }}" class="btn btn-outline-primary {% if persons.number == page_number %}active{% endif %}">
+                           {{ page_number }}
+                        </a>
+                  {% elif page_number == persons.number|add:'-3' or page_number == persons.number|add:'3' %}
+                        <button class="btn btn-outline-primary" disabled>...</button>
+                  {% endif %}
+               {% endfor %}
+
+               <!-- Lien vers la page suivante -->
+               {% if persons.has_next %}
+               <a href="?page={{ persons.next_page_number }}" class="btn btn-outline-primary">&raquo;</a>
+               {% endif %}
+            </div>
+         {% endif %}
+
+
+         {% else %}
+         <p class="text-center text-white">No seller found.</p>
+         {% endif %}
+
+
+      </tbody>
+
+   </table>
+
+   <br><br>
+   <a href="{% url 'admin-dashboard' %}" title="admin dashboard" class="btn btn-outline-danger text-white bg-danger w-50 col-md-1 float-right">Return</a>
+   <br>
+   
+</div>
+
+
+<!-- Modal suppression -->
+<div class="modal fade" id="supprimer" tabindex="-1" role="dialog" aria-labelledby="sexampleModalLabel"
+   aria-hidden="true">
+   <div class="modal-dialog" role="document">
+      <div class="modal-content">
+         <div class="modal-header">
+            <h5 class="modal-title text-dark" id="sexampleModalLabel">Delete person</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+               <span aria-hidden="true">&times;</span>
+            </button>
+         </div>
+         <div class="modal-body">
+            <form method="post">
+               {% csrf_token %}
+               <input name="id_supprimer" type="hidden" id="id_supprimer">
+               <label id="label_id_s" class="text-dark checkbox-inline"> <strong id="strong_id_s">Are you sure you want to delete the person ?</strong></label>
+
+               <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                  <button type="submit" class="btn btn-danger">Delete</button>
+               </div>
+            </form>
+         </div>
+
+      </div>
+   </div>
+</div>
+<!-- end modal-->
+
+<br><br>
+
+<script type="text/javascript">
+
+   // deleting of person
+
+   $(document).on('click', '#btn-person-sup', function(){
+      let person_id = $(this).data('id');
+      let customer = $(this).data('customer');
+      $('#id_supprimer').val(person_id);
+
+   })
+
+
+
+</script>
+
+
+<script>
+
+   $(document).ready(function(){
+      $("#search").on("keyup", function(){
+         var value = $(this).val().toLowerCase();
+         $("#myTable tr").filter(function(){
+            $(this).toggle($(this).text().toLocaleLowerCase().indexOf(value)>-1)
+            // toggle est utilise pour le changement des elements de la table
+         });
+      });
+   });
+
+</script>
+
+
+
+{% endblock %} 

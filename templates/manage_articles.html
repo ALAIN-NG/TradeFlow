@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Articles</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            font-family: 'Roboto', sans-serif;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .title {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .add-button {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .btn-secondary {
+            margin-top: 20px;
+            width: auto; /* Largeur automatique pour le bouton de retour */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 class="title">Gestion des Articles</h2>
+
+        <div class="add-button">
+            <a href="{% url 'add_article' %}" class="btn btn-success">Ajouter un article</a>
+        </div>
+
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Nom</th>
+                    <th>Date de Péremption</th>
+                    <th>Quantité Seuil</th>
+                    <th>Quantité en Stock</th>
+                    <th>Prix Unitaire</th>
+                    <th>URL de l'Image</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for article in articles %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ article.name }}</td>
+                        <td>{{ article.date_per }}</td>
+                        <td>{{ article.qte_seuil }}</td>
+                        <td>{{ article.qte_stock }}</td>
+                        <td>{{ article.PU }}</td>
+                        <td>{{ article.image_url }}</td>
+                        <td>
+                            <a href="{% url 'edit_article' article.id %}" class="btn btn-warning btn-sm">Modifier</a>
+                            <a href="{% url 'delete_article' %}?article_id={{ article.id }}" class="btn btn-danger btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet article ?');">Supprimer</a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center">Aucun article trouvé</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">Retour</a>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

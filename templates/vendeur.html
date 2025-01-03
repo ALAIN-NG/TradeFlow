@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenue Vendeur</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+         body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #6a11cb, #2575fc); /* Dégradé de fond */
+            font-family: 'Arial', sans-serif; /* Police de base */
+            margin: 0; /* Supprimer les marges par défaut */
+            color: #ffffff; /* Couleur du texte */
+        }
+        h1 {
+            font-size: 3rem; /* Taille de la police */
+            text-align: center; /* Centrer le texte */
+            padding: 20px; /* Espacement intérieur */
+            border-radius: 10px; /* Coins arrondis */
+            transition: transform 0.3s ease, color 0.3s ease; /* Animations sur le survol */
+        }
+        h1:hover {
+            transform: scale(1.1); /* Effet de zoom au survol */
+            color: #ffdd57; /* Changer la couleur au survol */
+        }
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2rem; /* Réduire la taille de police sur mobile */
+            }
+        }
+    
+
+       
+
+        .btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1.2rem;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+    <div class="welcome-container">
+        <h1>Bienvenue Vendeur</h1>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

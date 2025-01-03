@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1 class="text-capitalize text-center mx-10 bg-dark text-white">Update invoice</h1>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="customer">Customer</label>
+            <select name="customer" class="form-control">
+                {% for customer in customers %}
+                    <option value="{{ customer.id }}" {% if invoice.customer.id == customer.id %}selected{% endif %}>
+                        {{ customer.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="invoice_type">Invoice Type</label>
+            <select name="invoice_type" class="form-control">
+                <option value="R" {% if invoice.invoice_type == 'R' %}selected{% endif %}>RECEIPT</option>
+                <option value="P" {% if invoice.invoice_type == 'P' %}selected{% endif %}>PROFORMA INVOICE</option>
+                <option value="I" {% if invoice.invoice_type == 'I' %}selected{% endif %}>INVOICE</option>
+            </select>
+        </div>
+        <div id="wrapper">
+        {% for line in order_lines %}
+
+            <div class="form-row">
+                <div class="form-group col-md-4">
+                    <label for="article-{{forloop.counter}}">#{{forloop.counter}} Item name</label>
+                    <select name="article" class="form-control" id="article-{{forloop.counter}}" onchange="handleChangePrice(this)">
+                        {% for article in articles %}
+                            <option data-price="{{article.unit_price}}" value="{{ article.name }}" {% if line.article_name.name == article.name %}selected{% endif %} >{{forloop.counter}} - {{article.name}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group col-md-2">
+                    <label for="qty-{{forloop.counter}}">Quantity</label>
+                    <input required name="qty" value="{{ line.quantity }}" type="number" min="1" step="0.1" class="form-control" id="qty-{{forloop.counter}}" onchange="handleChangeSingleArticle(this)">
+                </div>
+
+                <div class="form-group col-md-3">
+                    <label for="unit-{{forloop.counter}}">Unit Price</label>
+                    <input required name="unit" value="{{line.unit_price}}" type="number" min="1" step="0.1" class="form-control" id="unit-{{forloop.counter}}" readonly>
+                </div>
+
+                <script>
+                        $(`#unit-{{forloop.counter}}`).val(parseFloat({{line.unit_price}}));
+                </script>
+
+                <div class="form-group col-md-3">
+                    <label for="total-a-{{forloop.counter}}">Total</label>
+                    <input required name="total-a" type="number" value="{{ line.total }}" min="1" step="0.1" readonly class="form-control" id="total-a-{{forloop.counter}}">
+                </div>
+
+                <script>
+                        $(`#total-a-{{forloop.counter}}`).val(parseFloat({{line.total}}));
+                </script>
+            </div>
+        {% endfor %}
+        
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group col-md-12">
+                <label for="total">Total</label>
+                <input type="number" min="1" step="0.1" name="total" value="{{ invoice.total }}" readonly class="form-control" id="total">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="comment">Comments</label>
+            <textarea name="comment" class="form-control">{{ invoice.comments }}</textarea>
+        </div>
+        <script>
+            $(`#total`).val(parseFloat({{invoice.total}}));
+        </script>
+
+        <br>
+        <button type="submit" class="btn btn-primary">Update Invoice</button>
+        <a href="{% url 'home' %}" title="Home" class="btn btn-outline-danger text-white bg-danger w-50 col-md-1 float-right">Return</a>
+    </form>
+
+     <br><br>
+
+    
+    <div class="row">
+        <button id="btn-add" class="btn btn-outline-danger w-50 col-md-6">Add a new item line</button>
+        <button id="btn-remove" class="btn btn-outline-warning w-50 col-md-6">Remove the last item line</button>
+    </div>
+
+    <br><br>
+
+    <script type="text/javascript">
+
+        // Click to add new line item
+        $(document).on('click', '#btn-add', function(){
+            var number = $('#wrapper').children().length + 1;
+            let formAdd = `
+                <div class="form-row">
+                    <div class="form-group col-md-4">
+                        <label for="article-${number}">#${number} Item name</label>
+                        <select name="article" class="form-control" id="article-${number}" onchange="handleChangePrice(this)">
+                            <option value="" disabled selected>Choose the article...</option>
+                            {% for article in articles %}
+                                <option value="{{article.name}}" data-price="{{article.unit_price}}">
+                                    {{forloop.counter}} - {{article.name}}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group col-md-2">
+                        <label for="qty-${number}">Quantity</label>
+                        <input required name="qty" type="number" min="1" step="0.1" class="form-control" id="qty-${number}" onchange="handleChangeSingleArticle(this)">
+                    </div>
+
+                    <div class="form-group col-md-3">
+                        <label for="unit-${number}">Unit Price</label>
+                        <input required name="unit" type="number" min="1" step="0.1" class="form-control" id="unit-${number}" readonly>
+                    </div>
+
+                    <div class="form-group col-md-3">
+                        <label for="total-a-${number}">Total</label>
+                        <input required name="total-a" type="number" min="1" step="0.1" readonly class="form-control" id="total-a-${number}">
+                    </div>
+                </div>`;
+
+            $("#wrapper").append(formAdd);
+        });
+
+        // Remove last item line
+        $(document).on('click', '#btn-remove', function(){
+            var lastRow = $("#wrapper").children().last();
+            var lastTotal = parseFloat(lastRow.find('input[id^="total-a"]').val()) || 0;
+
+            // Subtract the last total from the grand total
+            var currentTotal = parseFloat($('#total').val()) || 0;
+            $('#total').val(currentTotal - lastTotal);
+
+            // Remove the last item line
+            lastRow.remove();
+        });
+
+        // Function to update the unit price when the article is selected
+        function handleChangePrice(element) {
+            var number = element.id.split('-')[1];  // Extract line number from the id
+            let unitId = `#unit-${number}`;  // ID for unit price field
+
+            // Get the data-price attribute from the selected article option
+            const selectedOption = element.options[element.selectedIndex];
+            const price = parseFloat(selectedOption.getAttribute('data-price'));
+
+            // Update the unit price field with the price
+            if (price) {
+                document.querySelector(unitId).value = price;
+            } else {
+                document.querySelector(unitId).value = '';  // Reset if no price is available
+            }
+        }
+
+        // Function to calculate total for each item and update grand total
+        function handleChangeSingleArticle(element){
+            let articleId = element.id.split('-')[1];
+            let idQty = `#qty-${articleId}`;
+            let unitId = `#unit-${articleId}`;
+            let totalIdLine = `#total-a-${articleId}`;
+            let unit = parseFloat($(unitId).val()) || 0;
+
+            if (unit != 0) {
+                // Calculate the new total for the current line
+                let totalLine = parseFloat($(idQty).val()) * parseFloat($(unitId).val());
+
+                // Get the previous total of the line
+                let previousTotal = parseFloat($(totalIdLine).val()) || 0;
+
+                // Update the total for the current line
+                $(totalIdLine).val(totalLine);
+
+                // Update the grand total
+                let grandTotal = parseFloat($('#total').val()) || 0;
+                grandTotal = grandTotal - previousTotal + totalLine;
+                $('#total').val(grandTotal);
+            }
+        }
+
+    </script>
+{% endblock %}

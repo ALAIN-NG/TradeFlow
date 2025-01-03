@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Dashboard Seller </title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-y: auto;
+            min-height: 100vh;
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 20px;
+            position: relative;
+            background-image: url('../static/img/login-bg.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .galactic-waves {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 12px;
+            pointer-events: none;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 20%, transparent 20%) 0 0,
+                        radial-gradient(circle, rgba(255, 255, 255, 0.1) 20%, transparent 20%) 50% 50%;
+            background-size: 100px 100px;
+            animation: wave 5s infinite linear;
+            z-index: 0;
+        }
+
+        @keyframes wave {
+            0% { background-position: 0 0, 50% 50%; }
+            100% { background-position: 100% 100%, 150% 150%; }
+        }
+
+        .admin-dashboard {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 600px;
+            z-index: 1;
+            color: #fcf9f9;
+            margin: 20px auto;
+        }
+
+        .admin-dashboard:hover {
+            transform: scale(1.02);
+        }
+
+        .admin-dashboard h2 {
+            text-align: center;
+            color: #fcf9f9;
+            margin-bottom: 20px;
+            text-shadow: 1px 1px 3px rgba(207, 204, 204, 0.856);
+        }
+
+        .admin-dashboard h3 {
+            color: #fcf9f9;
+        }
+
+        .task-button {
+            width: 100%;
+            margin-bottom: 15px;
+            padding: 15px;
+            font-size: 1.1rem;
+            border-radius: 6px;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .task-button:hover {
+            transform: translateY(-3px);
+        }
+
+        .btn-primary { background-color: #007bff; border: none; }
+        .btn-danger { background-color: #dc3545; border: none; }
+        .btn-success { background-color: #28a745; border: none; }
+        .btn-warning { background-color: #ffc107; border: none; }
+        .btn-info { background-color: #17a2b8; border: none; }
+        .btn-secondary { background-color: #5406ad; border: none; }
+
+        .quit-button {
+            position: relative;
+            bottom: 5px;
+            left: 0px;
+        }
+
+        .welcome-message {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        marquee {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-info">
+        <h3 class="welcome-message"></h3>
+    </div>
+    <h3>{% block h1 %} {% endblock %}</h3>
+    <article>{% block content %} {% endblock %}</article>
+        
+    <div class="admin-dashboard">
+        <h2>Seller Dashboard</h2>
+        <br><br>
+        <div class="category">
+            {% comment %} <h3>Manage Customer</h3> {% endcomment %}
+            <button class="btn btn-primary task-button" onclick="location.href='{% url 'manage-clients' %}'">Manage Customer</button>
+        </div>
+        <br>
+
+        <div class="category">
+            {% comment %} <h3>Manage Orders</h3> {% endcomment %}
+            <button class="btn btn-primary task-button" onclick="location.href='{% url 'home' %}'">Manage Orders</button>
+        </div>
+        <br>
+    </div>
+
+    <a href="{% url 'login' %}" class="btn btn-secondary quit-button">Quit</a>
+</body>
+</html>

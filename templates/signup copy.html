@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestion des Ventes - Inscription</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+     body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-image: url('../static/img/login-bg.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+    .galactic-waves {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border-radius: 12px;
+      pointer-events: none;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 20%, transparent 20%) 0 0,
+                  radial-gradient(circle, rgba(255, 255, 255, 0.1) 20%, transparent 20%) 50% 50%;
+      background-size: 100px 100px;
+      animation: wave 5s infinite linear;
+      z-index: 0;
+    }
+
+    @keyframes wave {
+      0% { background-position: 0 0, 50% 50%; }
+      100% { background-position: 100% 100%, 150% 150%; }
+    }
+
+    .signup-container {
+      display: flex;
+      background-color: rgba(255, 255, 255, 0.5);;
+      background-image: url('login.jpg');
+      background-size: cover; /* Pour couvrir toute la zone */
+      background-position: center; /* Centrer l'image */
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+      width: 90%;
+      max-width: 800px; /* Largeur maximale augmentée */
+      max-height: 90vh; /* Hauteur maximale augmentée */
+      overflow-y: auto; /* Activation du défilement vertical */
+      position: relative;
+      z-index: 1;
+    }
+
+    .signup-form,
+    .signup-image {
+      flex: 1;
+      padding: 40px;
+    }
+
+    .signup-form h3 {
+      margin-bottom: 30px; /* Ajustement de l'espacement */
+      color: #333;
+    }
+
+    .form-control {
+      margin-bottom: 20px; /* Réduction de l'espacement entre les champs */
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 12px; /* Ajustement de la taille du bouton */
+      font-size: 1.2rem; /* Agrandissement de la taille de police */
+      border-radius: 6px;
+    }
+
+    .signup-image {
+      background-image: url('login.jpg');
+      background-size: cover;
+      background-position: center;
+      border-radius: 0 10px 10px 0; /* Arrondi des coins */
+    }
+
+    .back-link {
+      display: block;
+      text-align: right;
+      margin-top: 15px;
+      color: #007bff;
+      text-decoration: none;
+    }
+
+    .back-link:hover {
+      color: #0056b3;
+      text-decoration: underline;
+    }
+
+    @media (max-width: 767px) {
+      .signup-container {
+        flex-direction: column;
+        max-height: none; /* Pas de limite de hauteur sur mobile */
+      }
+
+      .signup-image {
+        height: 300px; /* Hauteur fixe pour l'image sur mobile */
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+        <div class="wrapper">
+            <br>
+            {% for message in messages %}
+                <div class="alert {{message.tags}} alert-dismissible" role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true"> &times;</span>
+                    </button>
+                    {{ message|safe }}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+  <div class="galactic-waves"></div>
+  <div class="signup-container">
+    <div class="signup-form">
+      <h3>Login</h3>
+      <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+          <label for="name">Nom</label>
+          <input type="text" class="form-control" id="name" name="name" placeholder="Entrez votre nom" required>
+        </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" class="form-control" id="email" name="email" placeholder="Entrez votre email" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Mot de passe</label>
+          <input type="password" class="form-control" id="password" name="password" placeholder="Entrez votre mot de passe" required>
+        </div>
+        <div class="form-group">
+          <label for="sex">Sexe</label>
+          <select class="form-control" id="sex" name="sex" required>
+            <option value="Homme">Homme</option>
+            <option value="Femme">Femme</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="phone">Téléphone</label>
+          <input type="text" class="form-control" id="phone" name="phone" placeholder="Entrez votre numéro de téléphone" required>
+        </div>
+        <div class="form-group">
+          <label for="address">Adresse</label>
+          <input type="text" class="form-control" id="address" name="address" placeholder="Entrez votre adresse" required>
+        </div>
+        <div class="form-group">
+          <label for="age">Âge</label>
+          <input type="number" class="form-control" id="age" name="age" placeholder="Entrez votre âge" required>
+        </div>
+        <div class="form-group">
+          <label for="city">Ville</label>
+          <input type="text" class="form-control" id="city" name="city" placeholder="Entrez votre ville" required>
+        </div>
+        <div class="form-group">
+          <label for="bp">BP</label>
+          <input type="number" class="form-control" id="bp" name="bp" placeholder="Entrez votre bp" required>
+        </div>
+        <input type="hidden" name="role" value="client">
+        <button type="submit" class="btn btn-primary">S'inscrire</button>
+      </form>
+      <a href="{% url 'login' %}" class="back-link">Déjà un compte ? Connectez-vous ici</a>
+    </div>
+    <div class="signup-image"></div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

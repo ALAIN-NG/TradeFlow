@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+
+{% block content %}
+<br><br>
+
+<div class="row">
+    <a href='#' class="col-md-4">
+      <span class="badge text-bg-secondary"></span>
+   </a>
+
+   <a href="{% url 'add-article' %}" class="btn col-md-4 btn-primary">
+     {% trans 'Register a new article ' %} <span class="badge text-bg-secondary"></span>
+   </a>
+
+   <a href='#' class="col-md-4">
+      <span class="badge text-bg-secondary"></span>
+   </a>
+
+</div>
+
+<br> <br>
+
+<div class="form-group ">
+   <input id="search" class="form-control" type="text" placeholder="Search....">
+</div>
+
+<div>
+   <table class="table table-striped-columns">
+      <thead>
+         <tr>
+            <th scope="col">#</th>
+            <th scope="col">{% trans 'NAME' %}</th>
+            <th scope="col">UNIT PRICE</th>
+            <th scope="col">QUANTITY</th>
+            <th scope="col">EXPIRATION DATE</th>
+            <th scope="col">DESCRIPTION</th>
+            <th scope="col">ACTION</th>
+
+         </tr>
+      </thead>
+      <tbody id="myTable">
+         {% if articles %}
+         {% for article in articles %}
+         <tr>
+            <th scope="row">{{ forloop.counter }}</th>
+            <td>{{article.name}}</td>
+            <td>{{article.unit_price}}</td>
+            <td>{{ article.quantity }}</td>
+            <td>{{article.date_per}}</td>
+            <td>{{article.description}}</td>
+            <td>
+               <button id="btn-article-sup" type="button" data-toggle="modal" data-target="#supprimer"
+                  class="badge text-white bg-danger" title="Supprimer" data-id="{{ article.pk }}"
+                  data-customer="{{article.name}}"> {% trans 'Delete' %}
+               </button>
+
+               <a href="{% url 'update-article' pk=article.pk %}" title="Update" class="badge text-white bg-success">{% trans 'Update' %}</a>
+            </td>
+         </tr>
+
+         {% endfor %}
+
+         {% if articles.has_other_pages %}
+            <div class="btn-group" role="group" aria-label="Item pagination">
+               <!-- Lien vers la page précédente -->
+               {% if articles.has_previous %}
+               <a href="?page={{ articles.previous_page_number }}" class="btn btn-outline-primary">&laquo;</a>
+               {% endif %}
+
+               <!-- Pages dynamiques -->
+               {% for page_number in articles.paginator.page_range %}
+                  {% if page_number == 1 or page_number == articles.paginator.num_pages %}
+                        <a href="?page={{ page_number }}" class="btn btn-outline-primary {% if articles.number == page_number %}active{% endif %}">
+                           {{ page_number }}
+                        </a>
+                  {% elif page_number >= articles.number|add:'-2' and page_number <= articles.number|add:'2' %}
+                        <a href="?page={{ page_number }}" class="btn btn-outline-primary {% if articles.number == page_number %}active{% endif %}">
+                           {{ page_number }}
+                        </a>
+                  {% elif page_number == articles.number|add:'-3' or page_number == articles.number|add:'3' %}
+                        <button class="btn btn-outline-primary" disabled>...</button>
+                  {% endif %}
+               {% endfor %}
+
+               <!-- Lien vers la page suivante -->
+               {% if articles.has_next %}
+               <a href="?page={{ articles.next_page_number }}" class="btn btn-outline-primary">&raquo;</a>
+               {% endif %}
+            </div>
+         {% endif %}
+
+         {% else %}
+         <p class="text-center text-white">No article found.</p>
+         {% endif %}
+
+
+      </tbody>
+
+   </table>
+
+   <br><br>
+   <a href="{% url 'login' %}" title="login" class="btn btn-outline-danger text-white bg-danger w-50 col-md-1 float-right">Return</a>
+   <br>
+
+</div>
+
+
+<!-- Modal suppression -->
+<div class="modal fade" id="supprimer" tabindex="-1" role="dialog" aria-labelledby="sexampleModalLabel"
+   aria-hidden="true">
+   <div class="modal-dialog" role="document">
+      <div class="modal-content">
+         <div class="modal-header">
+            <h5 class="modal-title text-dark" id="sexampleModalLabel">Delete article</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+               <span aria-hidden="true">&times;</span>
+            </button>
+         </div>
+         <div class="modal-body">
+            <form method="post">
+               {% csrf_token %}
+               <input name="id_supprimer" type="hidden" id="id_supprimer">
+               <label id="label_id_s" class="text-dark checkbox-inline"> <strong id="strong_id_s">Are you sure you want to delete the article ?</strong></label>
+
+               <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                  <button type="submit" class="btn btn-danger">Delete</button>
+               </div>
+            </form>
+         </div>
+
+      </div>
+   </div>
+</div>
+<!-- end modal-->
+
+<br><br>
+
+<script type="text/javascript">
+
+   // deleting of article
+
+   $(document).on('click', '#btn-article-sup', function(){
+      let article_id = $(this).data('id');
+      let customer = $(this).data('customer');
+      $('#id_supprimer').val(article_id);
+
+   })
+
+
+
+</script>
+
+
+<script>
+
+   $(document).ready(function(){
+      $("#search").on("keyup", function(){
+         var value = $(this).val().toLowerCase();
+         $("#myTable tr").filter(function(){
+            $(this).toggle($(this).text().toLocaleLowerCase().indexOf(value)>-1)
+            // toggle est utilise pour le changement des elements de la table
+         });
+      });
+   });
+
+</script>
+
+
+
+{% endblock %} 
