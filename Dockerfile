@@ -15,10 +15,10 @@ COPY requirements.txt .
 
 # Étape 4 : Installer les dépendances
 RUN pip install --no-cache-dir -r requirements.txt
-RUN python manage.py collectstatic --noinput
 
 # Étape 5 : Copier tout le projet dans le conteneur
 COPY . .
+RUN python manage.py collectstatic --noinput
 
 # Étape 6 : Exposer le port utilisé par Django (8000)
 EXPOSE 8000
