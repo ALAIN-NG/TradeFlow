@@ -5,7 +5,7 @@ services:
     plan: free
     dockerfilePath: ./Dockerfile
     buildCommand: "python manage.py collectstatic --noinput"
-    startCommand: "gunicorn tradeflow.wsgi:application"
+    startCommand: "gunicorn tradeflow.wsgi:application --bind 0.0.0.0:$PORT"
     envVars:
       - key: DJANGO_SETTINGS_MODULE
         value: tradeflow.settings
@@ -13,4 +13,6 @@ services:
         value: "False"
       - key: ALLOWED_HOSTS
         value: "*"
+    healthCheckPath: /healthz
+
 
